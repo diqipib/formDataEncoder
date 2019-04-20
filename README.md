@@ -16,16 +16,13 @@ Properties:
 		Request methods "GET" / "POST"
 		By default returns "GET"
 	
-	enctype (get/put)	 - Encoding type:
+	enctype (get/put)	 
 		
-		"application/x-www-form-urlencoded"
-			Used for simple text forms
-
-		"multipart/form-data"
-			Used when form contains files
-
-		"text/plain"
-			Send the data without any encoding
+		Encoding type:
+		
+		"application/x-www-form-urlencoded"	- Used for simple text forms
+		"multipart/form-data"			- Used when form contains files
+		"text/plain"				- Send the data without any encoding
 
 	boundary (get/put)
 		
