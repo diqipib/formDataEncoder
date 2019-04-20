@@ -1,7 +1,7 @@
 # formDataEncoder
 
-This Windows script Component was build to simplify html form data encoding. Despite the fact that it is written in JavaScript, it can be used in many different programming languages (VBScript / AHK / Autoit / etc..). 
-The big bonus is that windows script component could be used without registration. 
+This Windows script Component was build to simplify html form data encoding. Despite the fact that it is written in JavaScript, it could be used in many different programming languages (VBScript / AHK / Autoit / etc..). 
+The big bonus is that windows script component could be used without registration and it has open source. 
 
 Properties:
 
