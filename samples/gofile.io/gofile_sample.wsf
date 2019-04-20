@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<job>
+	<script language="JScript" src="../../includes/functions.js"></script>
+	<script language="JScript">
+	<![CDATA[
+	// Creating webFormDataBuilder instance
+	var form = GetObject("script:file:../../formDataEncoder.wsc");
+	// Setting destination url
+	form.action = "https://srv-file1.gofile.io/ajax/upload.php";
+	// Setting request method
+	form.method	= "POST";
+	// Setting encoding type
+	form.enctype = "multipart/form-data";
+	// Adding text fields
+	form.addTextField("category","file");
+	form.addTextField("comments","0");
+	// Adding file field.
+	form.addFileField("file[]","smile.png",readFile("../../smile.png"));
+	// Creating object for http request
+	var whr = new ActiveXObject('WinHttp.WinHttpRequest.5.1');
+	// Setting User-Agent (Not necessarily, but so the backend will be less surprised)
+	whr.option(0) = 'Mozilla/5.0';
+	// Opening request
+	whr.open(form.method, form.action, false);
+	// Adding "Content-Type" header
+	whr.setRequestHeader('Content-Type',form.contentType);
+	// Setting "Referer". (Not always but sites check it)
+	whr.setRequestHeader('Referer','https://srv-file1.gofile.io/ajax/upload.php');
+	// Sending request
+	whr.send(form.encode());
+	// Response status check
+	if(whr.status != '200') {
+		WSH.Echo('Upload failed ! ' + whr.status + ' ' + whr.statusText);
+	} else {
+		new ActiveXObject('WScript.Shell').Run('https://gofile.io/?c=' + whr.responseText.split(';')[1])
+	}
+	]]>
+	</script>
+</job>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<job>
+	<script language="JScript" src="../../includes/json2.js"></script>
+	<script language="JScript" src="../../includes/functions.js"></script>
+	<script language="JScript">
+	<![CDATA[
+	// Creating webFormDataBuilder instance
+	var form = GetObject("script:file:../../formDataEncoder.wsc");
+	// Setting destination url
+	form.action = "https://imgur.com/upload";
+	// Setting request method
+	form.method	= "POST";
+	// Setting encoding type
+	form.enctype = "multipart/form-data";
+	// Adding file field.
+	form.addFileField("Filedata","smile.png",readFile("../../smile.png"));
+	// Creating object for http request
+	var whr = new ActiveXObject('WinHttp.WinHttpRequest.5.1');
+	// Setting User-Agent (Not necessarily, but so the backend will be less surprised)
+	whr.option(0) = 'Mozilla/5.0';
+	// Opening request
+	whr.open(form.method, form.action, false);
+	// Adding "Content-Type" header
+	whr.setRequestHeader('Content-Type',form.contentType);
+	// Setting "Referer". (Not always but sites check it)
+	whr.setRequestHeader('Referer','https://imgur.com/upload');
+	// Sending request
+	whr.send(form.encode());
+	// Response status check
+	if(whr.status != '200') {
+		WSH.Echo('Upload failed ! ' + whr.status + ' ' + whr.statusText);
+	} else {
+		// Parsing json response
+		try {
+			var result = JSON.parse(whr.responseText);
+		} catch(e) {
+			WSH.Echo('Error on parsing JSON data. ' + e.description + '\r\n\r\n' + whr.responseText)
+			WSH.Quit();
+		}
+		// Result url opening
+		new ActiveXObject('WScript.Shell').Run('https://imgur.com/' + result.data.hash)
+	}
+	]]>
+	</script>
+</job>
