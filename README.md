@@ -65,4 +65,4 @@ Samples:
 	So You can create object using just one line of code: GetObject("script:file:formDataEncoder.wsc"). In this case file "formDataEncoder.wsc" has to be in the same folder.
 	Of course You can move it in any other directory and call it like this: 
 		GetObject("script:file:includes\formDataEncoder.wsc")
-		GetObject("script:file:C:\somefolder\subfolder\formDataEncoder.wsc")
+		GetObject("script:C:\somefolder\subfolder\formDataEncoder.wsc")
