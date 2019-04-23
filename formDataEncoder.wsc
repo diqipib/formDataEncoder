@@ -298,7 +298,6 @@
 					return stream.Read()
 				} finally {
 					stream.close();
-				//	CollectGarbage();
 				}
         }
     }
