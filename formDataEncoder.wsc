@@ -36,6 +36,15 @@
 		<!-- Method for config reset -->
 		<method name="clear"/>
 	</public>
+	<script language="VBScript">
+	<![CDATA[
+	'Encode function wrap to clean all data after usage
+	Function encode()
+		encode = encodeFunc()
+		CollectGarbage
+	End Function
+	]]>
+	</script>
 	<script language="JScript">
 	<![CDATA[
 	
@@ -59,9 +68,7 @@
 		// Destination URL for request
 		action,
 		// Fields array
-		fields,
-		// Объект для сбора данных для отправки
-		stream;
+		fields;
 
 	// Функция для возврата action формы
 	function get_action(){
@@ -193,7 +200,7 @@
     }
 
     // The main function for building request data
-    function encode(){
+    function encodeFunc(){
 		// Checking if fields exist
 		if(fields.length <= 0) return
 			// Request body buffer
@@ -203,16 +210,7 @@
 			// Field value buffer
 			value,
 			// Header buffer
-			header,
-			// Stream object for writing binary and text data
-			stream = new ActiveXObject("ADODB" + ".Stream");
-        
-		// Default mode is text
-		stream.Type = 2;
-		// Default charset for sending form is "UTF-8"
-        stream.Charset = "UTF-8";
-		// Stream initialization
-        stream.Open();
+			header;
 		
 		// The choice of processing method
         switch (method) {
@@ -227,6 +225,16 @@
 				action = a.href;
                 return
             case METHOD_POST:
+			
+				// Stream object for writing binary and text data
+				var stream = new ActiveXObject("ADODB" + ".Stream");
+				// Default mode is text
+				stream.Type = 2;
+				// Default charset for sending form is "UTF-8"
+				stream.Charset = "UTF-8";
+				// Stream initialization
+				stream.Open();
+			
                 switch (enctype) {
 					// Code for encoding type "application/x-www-form-urlencoded"
                     case ENCTYPE_URLENCODED:
@@ -285,12 +293,13 @@
                 stream.Type = 1;
 				// BOM offset. Skipping first 4 bytes. (Value 3 is used cause first byte has 0 position)
                 stream.Position = 3;
-				// Dump data
-				body = stream.Read();
-				// Closing the stream
-				stream.close();
-				// Returning data from function
-                return body
+				// Returning data
+				try {
+					return stream.Read()
+				} finally {
+					stream.close();
+				//	CollectGarbage();
+				}
         }
     }
 
