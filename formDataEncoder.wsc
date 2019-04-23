@@ -47,7 +47,6 @@
 	</script>
 	<script language="JScript">
 	<![CDATA[
-	
 		// Request method constants
 	var METHOD_GET = "GET",
 		METHOD_POST = "POST",
@@ -56,7 +55,7 @@
 		ENCTYPE_URLENCODED = "application/x-www-form-urlencoded",
 		ENCTYPE_MULTIPART = "multipart/form-data",
 		ENCTYPE_PLAIN = "text/plain",
-	
+
 		// Boundary prefix ( is used for multipart encoding )
 		boundaryPrefix = "--",
 		// Boundary ( buffer for splitter, used for multipart encoding )
@@ -71,151 +70,158 @@
 		fields;
 
 	// Функция для возврата action формы
-	function get_action(){
+	function get_action() {
 		return action
 	}
-	
+
 	// Action form property write
-	function put_action(value){
+	function put_action(value) {
 		action = value
 	}
-	
+
 	// Request method property read
-	function get_method(){
+	function get_method() {
 		return method
-	}		
+	}
 
 	// Request method property write
-	function put_method(value){
+	function put_method(value) {
 		value = String(value).toUpperCase();
-		switch(value){
+		switch (value) {
 			case METHOD_GET:
 			case METHOD_POST:
 				method = value;
 				return
 		}
 		throw new Error("Unknown method specified")
-	}	
-	
+	}
+
 	// Boundary property read
-	function get_boundary(){
-		if(boundary == "") boundary = "----------" + genRandomString(30)
+	function get_boundary() {
+		if (boundary == "") boundary = "----------" + genRandomString(30)
 		return boundary
 	}
-	
+
 	// "contentType" property read
-	function get_contentType(){
-		if(method == METHOD_POST && enctype == ENCTYPE_MULTIPART){
+	function get_contentType() {
+		if (method == METHOD_POST && enctype == ENCTYPE_MULTIPART) {
 			return enctype + "; boundary=" + get_boundary()
 		} else {
 			return enctype
 		}
 	}
-	
+
 	// Encoding type property read
-	function get_enctype(value){
+	function get_enctype(value) {
 		return enctype
 	}
-	
+
 	// Encoding type property write
-	function put_enctype(value){
+	function put_enctype(value) {
 		value = String(value).toLowerCase();
-		switch(value){
+		switch (value) {
 			case ENCTYPE_URLENCODED:
 			case ENCTYPE_MULTIPART:
 			case ENCTYPE_PLAIN:
 				enctype = value
-				return 
+				return
 		}
 		throw new Error("Unknown enctype specified");
 	}
-	
+
 	// Function for config reset
-	function clear(){
-		method		= METHOD_GET;
-		enctype		= ENCTYPE_URLENCODED;
-		fields		= [];
-		boundary	= "";
+	function clear() {
+		method = METHOD_GET;
+		enctype = ENCTYPE_URLENCODED;
+		fields = [];
+		boundary = "";
 	}
 
 	// Getting content type by file extension
-	function getContentTypeByExtension(extension){
+	function getContentTypeByExtension(extension) {
 		try {
 			return new ActiveXObject('WScript.Shell').RegRead('HKCR\\.' + extension + '\\Content Type')
-		} catch(e) {
+		} catch (e) {
 			return 'application/octet-stream'
 		}
 	}
-	
+
 	// get file extension
-	function getExtensionName(fileName){
+	function getExtensionName(fileName) {
 		return (fileName.match(/\.([^.]*?)(?=\?|#|$)/) || [])[1]
-	}	
+	}
 
-    // Function to get file name
-    function getFileName(path) {
-        return path.replace(/^.*(\\|\/|\:)/, "");
-    }
+	// Function to get file name
+	function getFileName(path) {
+		return path.replace(/^.*(\\|\/|\:)/, "");
+	}
 
-    // URL encoding function
-    function urlEncodeFormFields(fields){
-        var varBody = "", field; for (var i in fields) {
-            field = fields[i];
-			varBody += "&" + encodeURIComponent(field.name) + "=" + encodeURIComponent(field.type == 1 ? getFileName(field.value):field.value);
-        } return varBody.substring(1).replace(/%20/g,"+");
-    }
-    
-    // Function to get random string of chars
-    function genRandomString(length) {
-		return new Array(length).join().replace(/(.|$)/g, function(){return ((Math.random()*36)|0).toString(36)[Math.random()<.5?"toString":"toUpperCase"]();});
-    }
+	// URL encoding function
+	function urlEncodeFormFields(fields) {
+		var varBody = "",
+			field;
+		for (var i in fields) {
+			field = fields[i];
+			varBody += "&" + encodeURIComponent(field.name) + "=" + encodeURIComponent(field.type == 1 ? getFileName(field.value) : field.value);
+		}
+		return varBody.substring(1).replace(/%20/g, "+");
+	}
+
+	// Function to get random string of chars
+	function genRandomString(length) {
+		return new Array(length).join().replace(/(.|$)/g, function() {
+			return ((Math.random() * 36) | 0).toString(36)[Math.random() < .5 ? "toString" : "toUpperCase"]();
+		});
+	}
 
 	// Function for adding text field
-	function addTextField(name, value){
+	function addTextField(name, value) {
 		fields.push({
 			"type": 0,
-			"name": name, 
+			"name": name,
 			"value": value
 		})
 	}
 
 	// Function for adding file (binary data) field
-	function addFileField(name, fileName, fileBody, contentType){
-		if(!fileName){throw new Error("fileName attribute must be specified")}
+	function addFileField(name, fileName, fileBody, contentType) {
+		if (!fileName) {
+			throw new Error("fileName attribute must be specified")
+		}
 		fields.push({
 			"type": 1,
-			"name": name, 
+			"name": name,
 			"value": fileName,
 			"fileBody": fileBody,
 			"contentType": contentType || getContentTypeByExtension(getExtensionName(fileName))
 		})
 	}
 
-    // Function to change stream type on the fly
-    function changeStreamType(stream, type) {
-        var position = stream.Position;
-        stream.Position = 0;
-        stream.Type = type;
-        stream.Position = position;
-    }
+	// Function to change stream type on the fly
+	function changeStreamType(stream, type) {
+		var position = stream.Position;
+		stream.Position = 0;
+		stream.Type = type;
+		stream.Position = position;
+	}
 
-    // The main function for building request data
-    function encodeFunc(){
+	// The main function for building request data
+	function encodeFunc() {
 		// Checking if fields exist
-		if(fields.length <= 0) return
-			// Request body buffer
-        var body = "",
+		if (fields.length <= 0) return
+		// Request body buffer
+		var body = "",
 			// fields counter
 			i,
 			// Field value buffer
 			value,
 			// Header buffer
 			header;
-		
+
 		// The choice of processing method
-        switch (method) {
+		switch (method) {
 			// Request method "GET"
-            case METHOD_GET:
+			case METHOD_GET:
 				// Using HTMLDocument functionality for building URL + parameters
 				var a = new ActiveXObject("htmlfile").createElement("a");
 				a.href = action;
@@ -223,9 +229,9 @@
 				a.search = urlEncodeFormFields(fields);
 				// Returning request url to action property [protocol]://[url]?param1=value1&param2=value2&pram3=value3[&paramN=...]
 				action = a.href;
-                return
-            case METHOD_POST:
-			
+				return
+			case METHOD_POST:
+
 				// Stream object for writing binary and text data
 				var stream = new ActiveXObject("ADODB" + ".Stream");
 				// Default mode is text
@@ -234,14 +240,14 @@
 				stream.Charset = "UTF-8";
 				// Stream initialization
 				stream.Open();
-			
-                switch (enctype) {
+
+				switch (enctype) {
 					// Code for encoding type "application/x-www-form-urlencoded"
-                    case ENCTYPE_URLENCODED:
+					case ENCTYPE_URLENCODED:
 						stream.WriteText(urlEncodeFormFields(fields));
-                        break
-					// Code for encoding type "multipart/form-data"
-                    case ENCTYPE_MULTIPART:
+						break
+						// Code for encoding type "multipart/form-data"
+					case ENCTYPE_MULTIPART:
 						// Rebuilding Content-Type and boundary initialization
 						get_contentType();
 						// Fields processing
@@ -249,62 +255,61 @@
 							// Building header
 							header = boundaryPrefix + boundary + "\r\n\Content-Disposition: form-data; name=\"" + fields[i].name + "\"";
 							// Field type check (text field | file)
-                            switch (fields[i].type) {
-							case 0: 
-								// Processing text field
-								stream.WriteText(header + "\r\n\r\n" + fields[i].value + "\r\n");
-								break;
-							case 1:
-								// Processing file field
-								stream.WriteText(header + "; filename=\"" + getFileName(fields[i].value) + "\"\r\nContent-Type: " + fields[i].contentType + "\r\n\r\n");
-								// Cheking type of data
-								if(typeof fields[i].fileBody == 'unknown'){
-									// Stream type change
-									changeStreamType(stream, 1);
-									// Adding file body
-									stream.Write(fields[i].fileBody);
-									// Stream type change back
-									changeStreamType(stream, 2);
-								} else {
-									// Writing text field data
-									stream.WriteText(fields[i].fileBody);
-								}
-								// Adding trailing line break
-								stream.WriteText("\r\n");
-                            }
-                        }
+							switch (fields[i].type) {
+								case 0:
+									// Processing text field
+									stream.WriteText(header + "\r\n\r\n" + fields[i].value + "\r\n");
+									break;
+								case 1:
+									// Processing file field
+									stream.WriteText(header + "; filename=\"" + getFileName(fields[i].value) + "\"\r\nContent-Type: " + fields[i].contentType + "\r\n\r\n");
+									// Cheking type of data
+									if (typeof fields[i].fileBody == 'unknown') {
+										// Stream type change
+										changeStreamType(stream, 1);
+										// Adding file body
+										stream.Write(fields[i].fileBody);
+										// Stream type change back
+										changeStreamType(stream, 2);
+									} else {
+										// Writing text field data
+										stream.WriteText(fields[i].fileBody);
+									}
+									// Adding trailing line break
+									stream.WriteText("\r\n");
+							}
+						}
 						// Adding last boundary with tail ("--")
-                        stream.WriteText(boundaryPrefix + boundary + boundaryPrefix);
-                        break
-                    case ENCTYPE_PLAIN:
+						stream.WriteText(boundaryPrefix + boundary + boundaryPrefix);
+						break
+					case ENCTYPE_PLAIN:
 						// Code for encoding type "text/plain"
 						for (i in fields) {
-                            value = fields[i].value;
-                            if (fields[i].type == 1) value = getFileName(value);
-                            body += fields[i].name + "=" + value + "\r\n";
-                        }
-                        body = body.substring(0, body.length - 2);
-                        stream.WriteText(body);
-                        break
-                }
+							value = fields[i].value;
+							if (fields[i].type == 1) value = getFileName(value);
+							body += fields[i].name + "=" + value + "\r\n";
+						}
+						body = body.substring(0, body.length - 2);
+						stream.WriteText(body);
+						break
+				}
 				// Stream rewind for changing it's type
-                stream.Position = 0;
+				stream.Position = 0;
 				// Switching to binary mode
-                stream.Type = 1;
+				stream.Type = 1;
 				// BOM offset. Skipping first 4 bytes. (Value 3 is used cause first byte has 0 position)
-                stream.Position = 3;
+				stream.Position = 3;
 				// Returning data
 				try {
 					return stream.Read()
 				} finally {
 					stream.close();
 				}
-        }
-    }
+		}
+	}
 
 	// Reset settings on load
 	clear();
-
 	]]>
 	</script>
 </component>
