@@ -36,15 +36,6 @@
 		<!-- Method for config reset -->
 		<method name="clear"/>
 	</public>
-	<script language="VBScript">
-	<![CDATA[
-	'Encode function wrap to clean all data after usage
-	Function encode()
-		encode = encodeFunc()
-		CollectGarbage
-	End Function
-	]]>
-	</script>
 	<script language="JScript">
 	<![CDATA[
 		// Request method constants
@@ -206,7 +197,7 @@
 	}
 
 	// The main function for building request data
-	function encodeFunc() {
+	function encode() {
 		// Checking if fields exist
 		if (fields.length <= 0) return
 		// Request body buffer
@@ -220,91 +211,92 @@
 
 		// The choice of processing method
 		switch (method) {
-			// Request method "GET"
-			case METHOD_GET:
-				// Using HTMLDocument functionality for building URL + parameters
-				var a = new ActiveXObject("htmlfile").createElement("a");
-				a.href = action;
-				// Data building
-				a.search = urlEncodeFormFields(fields);
-				// Returning request url to action property [protocol]://[url]?param1=value1&param2=value2&pram3=value3[&paramN=...]
-				action = a.href;
-				return
-			case METHOD_POST:
+		// Request method "GET"
+		case METHOD_GET:
+			// Using HTMLDocument functionality for building URL + parameters
+			var a = new ActiveXObject("htmlfile").createElement("a");
+			a.href = action;
+			// Data building
+			a.search = urlEncodeFormFields(fields);
+			// Returning request url to action property [protocol]://[url]?param1=value1&param2=value2&pram3=value3[&paramN=...]
+			action = a.href;
+			return
+		case METHOD_POST:
 
-				// Stream object for writing binary and text data
-				var stream = new ActiveXObject("ADODB" + ".Stream");
-				// Default mode is text
-				stream.Type = 2;
-				// Default charset for sending form is "UTF-8"
-				stream.Charset = "UTF-8";
-				// Stream initialization
-				stream.Open();
+			// Stream object for writing binary and text data
+			var stream = new ActiveXObject("ADODB" + ".Stream");
+			// Default mode is text
+			stream.Type = 2;
+			// Default charset for sending form is "UTF-8"
+			stream.Charset = "UTF-8";
+			// Stream initialization
+			stream.Open();
 
-				switch (enctype) {
-					// Code for encoding type "application/x-www-form-urlencoded"
-					case ENCTYPE_URLENCODED:
-						stream.WriteText(urlEncodeFormFields(fields));
-						break
-						// Code for encoding type "multipart/form-data"
-					case ENCTYPE_MULTIPART:
-						// Rebuilding Content-Type and boundary initialization
-						get_contentType();
-						// Fields processing
-						for (i in fields) {
-							// Building header
-							header = boundaryPrefix + boundary + "\r\n\Content-Disposition: form-data; name=\"" + fields[i].name + "\"";
-							// Field type check (text field | file)
-							switch (fields[i].type) {
-								case 0:
-									// Processing text field
-									stream.WriteText(header + "\r\n\r\n" + fields[i].value + "\r\n");
-									break;
-								case 1:
-									// Processing file field
-									stream.WriteText(header + "; filename=\"" + getFileName(fields[i].value) + "\"\r\nContent-Type: " + fields[i].contentType + "\r\n\r\n");
-									// Cheking type of data
-									if (typeof fields[i].fileBody == 'unknown') {
-										// Stream type change
-										changeStreamType(stream, 1);
-										// Adding file body
-										stream.Write(fields[i].fileBody);
-										// Stream type change back
-										changeStreamType(stream, 2);
-									} else {
-										// Writing text field data
-										stream.WriteText(fields[i].fileBody);
-									}
-									// Adding trailing line break
-									stream.WriteText("\r\n");
-							}
+			switch (enctype) {
+				// Code for encoding type "application/x-www-form-urlencoded"
+				case ENCTYPE_URLENCODED:
+					stream.WriteText(urlEncodeFormFields(fields));
+					break
+					// Code for encoding type "multipart/form-data"
+				case ENCTYPE_MULTIPART:
+					// Rebuilding Content-Type and boundary initialization
+					get_contentType();
+					// Fields processing
+					for (i in fields) {
+						// Building header
+						header = boundaryPrefix + boundary + "\r\n\Content-Disposition: form-data; name=\"" + fields[i].name + "\"";
+						// Field type check (text field | file)
+						switch (fields[i].type) {
+							case 0:
+								// Processing text field
+								stream.WriteText(header + "\r\n\r\n" + fields[i].value + "\r\n");
+								break;
+							case 1:
+								// Processing file field
+								stream.WriteText(header + "; filename=\"" + getFileName(fields[i].value) + "\"\r\nContent-Type: " + fields[i].contentType + "\r\n\r\n");
+								// Cheking type of data
+								if (typeof fields[i].fileBody == 'unknown') {
+									// Stream type change
+									changeStreamType(stream, 1);
+									// Adding file body
+									stream.Write(fields[i].fileBody);
+									// Stream type change back
+									changeStreamType(stream, 2);
+								} else {
+									// Writing text field data
+									stream.WriteText(fields[i].fileBody);
+								}
+								// Adding trailing line break
+								stream.WriteText("\r\n");
 						}
-						// Adding last boundary with tail ("--")
-						stream.WriteText(boundaryPrefix + boundary + boundaryPrefix);
-						break
-					case ENCTYPE_PLAIN:
-						// Code for encoding type "text/plain"
-						for (i in fields) {
-							value = fields[i].value;
-							if (fields[i].type == 1) value = getFileName(value);
-							body += fields[i].name + "=" + value + "\r\n";
-						}
-						body = body.substring(0, body.length - 2);
-						stream.WriteText(body);
-						break
-				}
-				// Stream rewind for changing it's type
-				stream.Position = 0;
-				// Switching to binary mode
-				stream.Type = 1;
-				// BOM offset. Skipping first 4 bytes. (Value 3 is used cause first byte has 0 position)
-				stream.Position = 3;
-				// Returning data
-				try {
-					return stream.Read()
-				} finally {
-					stream.close();
-				}
+					}
+					// Adding last boundary with tail ("--")
+					stream.WriteText(boundaryPrefix + boundary + boundaryPrefix);
+					break
+				case ENCTYPE_PLAIN:
+					// Code for encoding type "text/plain"
+					for (i in fields) {
+						value = fields[i].value;
+						if (fields[i].type == 1) value = getFileName(value);
+						body += fields[i].name + "=" + value + "\r\n";
+					}
+					body = body.substring(0, body.length - 2);
+					stream.WriteText(body);
+					break
+			}
+			// Stream rewind for changing it's type
+			stream.Position = 0;
+			// Switching to binary mode
+			stream.Type = 1;
+			// BOM offset. Skipping first 4 bytes. (Value 3 is used cause first byte has 0 position)
+			stream.Position = 3;
+			// Returning data
+			try {
+				return stream.Read()
+			} finally {
+				stream.close();
+				CollectGarbage()
+			}
 		}
 	}
 
